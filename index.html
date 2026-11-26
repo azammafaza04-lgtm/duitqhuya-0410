@@ -167,6 +167,16 @@ main>[data-tab]{display:flex;flex-direction:column;gap:14px}
 .plinks .forgot{display:grid;gap:10px;color:var(--fg);font-size:.88rem}
 .lab{display:grid;gap:4px;font-size:.75rem;color:var(--muted)}
 .lab select{color:var(--fg)}
+
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+@supports (height:100dvh){html,body{height:100dvh}}
+body{display:flex;flex-direction:column;padding:0!important}
+.scroller{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:12px max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px))}
+.tabs{position:static;flex:none}
+body.kb .tabs{display:none}
+
+html,body,.lock,button,.btn,label,select,input{touch-action:manipulation}
+.pad button,.tabs button,.pad span{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 </style></head><body>
 <div class="lock cover" id="lock" role="dialog" aria-modal="true" aria-label="Kunci DuitQhu">
   <div class="lockbrand">DuitQhu</div>
@@ -179,7 +189,7 @@ main>[data-tab]{display:flex;flex-direction:column;gap:14px}
     <div class="plinks" id="plinks"></div>
   </div>
 </div>
-<div class="wrap">
+<div class="scroller" id="scroller"><div class="wrap">
   <header class="top">
     <div><p class="eyebrow" id="today"></p><h1>DuitQhu</h1></div>
     <label class="mon" for="month">Bulan<input type="month" id="month"></label>
@@ -229,12 +239,12 @@ main>[data-tab]{display:flex;flex-direction:column;gap:14px}
       <p class="foot">Acuan rasio memakai kebiasaan umum perencana keuangan (cicilan maksimal 30% pendapatan, tabungan 20%, dana darurat 6 bulan kebutuhan). Sesuaikan dengan kondisi Anda. Bukan nasihat keuangan.</p>
     </div>
   </main>
-  <nav class="tabs" aria-label="Menu utama">
+</div></div>
+<nav class="tabs" aria-label="Menu utama">
     <button type="button" data-go="home"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Ringkasan</button>
     <button type="button" data-go="log"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Catat</button>
     <button type="button" data-go="data"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>Data</button>
   </nav>
-</div>
 <script>
 (function(){
 'use strict';
@@ -371,7 +381,7 @@ function showTab(n){
   if(TABS.indexOf(n)<0) n='home';
   document.querySelectorAll('[data-tab]').forEach(function(el){el.hidden=el.getAttribute('data-tab')!==n});
   document.querySelectorAll('.tabs button').forEach(function(b){b.setAttribute('aria-current',b.getAttribute('data-go')===n?'page':'false')});
-  window.scrollTo(0,0);setMeta({tab:n});
+  var sc=document.getElementById('scroller');if(sc) sc.scrollTop=0;setMeta({tab:n});
 }
 
 /* ---------- hitungan ---------- */
@@ -760,6 +770,11 @@ document.addEventListener('keydown',function(e){
   if(/^[0-9]$/.test(e.key)) press(e.key); else if(e.key==='Backspace') press('⌫');
 });
 
+
+/* ---------- menu bawah tetap diam ---------- */
+function isField(el){return !!el&&/^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName)&&el.type!=='file'}
+document.addEventListener('focusin',function(e){if(isField(e.target)) document.body.classList.add('kb')});
+document.addEventListener('focusout',function(){setTimeout(function(){if(!isField(document.activeElement)){document.body.classList.remove('kb');window.scrollTo(0,0)}},120)});
 var raw=lsGet(KEY), loaded=false;
 if(raw){try{S=norm(JSON.parse(raw));loaded=true}catch(e){}}
 document.getElementById('exportBtn').addEventListener('click',exportBackup);
